@@ -21,6 +21,7 @@ const multiVariant = new HLSMultiVariant({
 await multiVariant.fetch();
 
 const mediaPlaylist = new HLSMediaPlaylist({ url: multiVariant.streamURLs[0] }, params);
+// multiVariant.streamURLs[0].href === "https://lab.cdn.eyevinn.technology/sto-slate.mp4/manifest_1.m3u8?token=TOKEN"
 await mediaPlaylist.fetch();
 
 console.log(mediaPlaylist.toString());
