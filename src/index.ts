@@ -9,7 +9,7 @@ interface IHLSOpts {
 
 class HLS {
   protected m3u: any;
-  private opts: IHLSOpts;
+  protected opts: IHLSOpts;
 
   constructor(opts: IHLSOpts) {
     this.opts = opts;
@@ -68,6 +68,22 @@ export class HLSMultiVariant extends HLS {
   async fetch() {
     await this._fetchAndParse();
     this.m3u.items.StreamItem.map(item => this.applyParams(this.params, item));
+  }
+
+  get streams(): string[] {
+    return this.m3u.items.StreamItem.map(item => item.get("uri"));
+  }
+
+  get streamURLs(): URL[] {
+    let basePath = "https://fakeurl.com/";
+
+    if (this.opts.url) {
+      const m = this.opts.url.href.match("^(.*)/.*?$");
+      if (m) {
+        basePath = m[1] + "/";
+      }
+    }
+    return this.m3u.items.StreamItem.map(item => new URL(item.get("uri"), basePath));
   }
 }
 

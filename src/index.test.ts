@@ -24,6 +24,14 @@ describe("multivariant playlist", () => {
     const lines = hls.toString().split("\n");
     expect(lines[4]).toEqual("manifest_1.m3u8?type=asdf&hej=hopp");
   });
+
+  test("return a list of media playlist with query params", async () => {
+    const params = new URLSearchParams({ hej: "hopp" });
+    const hls = new HLSMultiVariant({ filePath: "./testvectors/query/manifest.m3u8" }, params);
+    await hls.fetch();
+    expect(hls.streams[0]).toEqual("manifest_1.m3u8?type=asdf&hej=hopp");
+    expect(hls.streamURLs.map(url => url.href)[0]).toEqual("https://fakeurl.com/manifest_1.m3u8?type=asdf&hej=hopp");
+  });
 });
 
 describe("media playlist", () => {
