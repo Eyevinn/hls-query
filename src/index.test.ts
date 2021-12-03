@@ -45,9 +45,7 @@ describe("multivariant playlist", () => {
 
   test("apply query params using a function", async () => {
     let i = 0;
-    const paramsFunc = (uri: string) => {
-      return new URLSearchParams({ i: `${i++}` });
-    }
+    const paramsFunc = (uri: string) => new URLSearchParams({ i: `${i++}` });
     const hls = new HLSMultiVariant({ filePath: "./testvectors/query/manifest.m3u8" }, paramsFunc);
     await hls.fetch();
     expect(hls.streams[0]).toEqual("manifest_1.m3u8?type=asdf&i=0");
@@ -114,9 +112,7 @@ describe("media playlist", () => {
 
   test("apply query params using a function", async () => {
     let i = 0;
-    const paramsFunc = (uri: string) => {
-      return new URLSearchParams({ i: `${i++}` });
-    }
+    const paramsFunc = (uri: string) => new URLSearchParams({ i: `${i++}` });
     const hls = new HLSMediaPlaylist({ filePath: "./testvectors/query/manifest_1.m3u8" }, paramsFunc);
     await hls.fetch();
     const lines = hls.toString().split("\n");

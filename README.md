@@ -35,6 +35,26 @@ console.log(mediaPlaylist.toString());
 // #EXT-X-ENDLIST
 ```
 
+It is also possible to apply a function that should be applied on each item in a multivariant or media playlist.
+
+```javascript
+let i = 0;
+const mediaPlaylist = new HLSMediaPlaylist({ url: multiVariant.streamURLs[0] }, 
+  (uri) => new URLSearchParams({ i: `${i++}` }));
+await mediaPlaylist.fetch();
+
+console.log(mediaPlaylist.toString());
+// #EXTM3U
+// #EXT-X-VERSION:3
+// #EXT-X-TARGETDURATION:10
+// #EXT-X-MEDIA-SEQUENCE:1
+// #EXT-X-PLAYLIST-TYPE:VOD
+// #EXTINF:10.0000,
+// manifest_1_00001.ts?i=0
+// manifest_1_00002.ts?i=1
+// #EXT-X-ENDLIST
+```
+
 # About Eyevinn Technology
 
 Eyevinn Technology is an independent consultant firm specialized in video and streaming. Independent in a way that we are not commercially tied to any platform or technology vendor.
