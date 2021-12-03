@@ -125,15 +125,15 @@ export class HLSMediaPlaylist extends HLS {
 
   async fetch() {
     await this._fetchAndParse();
-    if (this.prependUrl) {
-      this.m3u.items.PlaylistItem.map(item => {
-        item.set("uri", this.prependUrl.href + item.get("uri"));
-      });
-    }
     if (this.params) {
       this.m3u.items.PlaylistItem.map(item => this.applyParams(this.params, item));
     } else {
       this.m3u.items.PlaylistItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
+    }
+    if (this.prependUrl) {
+      this.m3u.items.PlaylistItem.map(item => {
+        item.set("uri", this.prependUrl.href + item.get("uri"));
+      });
     }
   }
 }
