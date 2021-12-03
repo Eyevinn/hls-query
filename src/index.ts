@@ -1,10 +1,11 @@
 import fetch from "node-fetch";
 import m3u8 from "@eyevinn/m3u8";
-import { createReadStream, existsSync } from "fs";
+import { createReadStream, ReadStream } from "fs";
 
 interface IHLSOpts {
   url?: URL;
   filePath?: string;
+  stream?: ReadStream;
 }
 
 class HLS {
@@ -43,6 +44,12 @@ class HLS {
       } else if (this.opts.filePath) {
         try {
           createReadStream(this.opts.filePath).pipe(parser);
+        } catch(err) {
+          reject(`Failed to fetch manifest: ` + err);
+        }
+      } else if (this.opts.stream) {
+        try {
+          this.opts.stream.pipe(parser);
         } catch(err) {
           reject(`Failed to fetch manifest: ` + err);
         }

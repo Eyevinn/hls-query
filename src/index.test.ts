@@ -1,9 +1,19 @@
 import { HLSMultiVariant, HLSMediaPlaylist } from "./index";
+import { createReadStream } from "fs";
 
 describe("multivariant playlist", () => {
   test("adding one query param to multivariant playlist", async () => {
     const params = new URLSearchParams({ hej: "hopp" });
     const hls = new HLSMultiVariant({ filePath: "./testvectors/slate/manifest.m3u8" }, params);
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[4]).toEqual("manifest_1.m3u8?hej=hopp");
+  });
+
+  test("adding one query param to multivariant playlist provided as a stream", async () => {
+    const params = new URLSearchParams({ hej: "hopp" });
+    const readStream = createReadStream("./testvectors/slate/manifest.m3u8");
+    const hls = new HLSMultiVariant({ stream: readStream }, params);
     await hls.fetch();
     const lines = hls.toString().split("\n");
     expect(lines[4]).toEqual("manifest_1.m3u8?hej=hopp");
@@ -44,6 +54,17 @@ describe("media playlist", () => {
     expect(lines[8]).toEqual("manifest_1_00002.ts?hej=hopp");
     expect(lines[10]).toEqual("manifest_1_00003.ts?hej=hopp");
   });
+
+  test("adding one query param to media playlist as a stream", async () => {
+    const params = new URLSearchParams({ hej: "hopp" });
+    const readStream = createReadStream("./testvectors/slate/manifest_1.m3u8");
+    const hls = new HLSMediaPlaylist({ stream: readStream }, params);
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[6]).toEqual("manifest_1_00001.ts?hej=hopp");
+    expect(lines[8]).toEqual("manifest_1_00002.ts?hej=hopp");
+    expect(lines[10]).toEqual("manifest_1_00003.ts?hej=hopp");
+  });  
 
   test("adding one query params to media playlist that has URLs with query params", async () => {
     const params = new URLSearchParams({ hej: "hopp" });
