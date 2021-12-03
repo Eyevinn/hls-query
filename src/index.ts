@@ -62,19 +62,33 @@ class HLS {
     params.forEach((value, key) => searchParams.append(key, value));
     item.set("uri", item.get("uri").split("?")[0] + "?" + searchParams.toString())
   }
+
+  protected applyParamsFunc(createParams: (uri: string) => URLSearchParams, item): void {
+    const searchParams = createParams(item.get("uri"));
+    this.applyParams(searchParams, item);
+  }
 }
 
 export class HLSMultiVariant extends HLS {
-  private params: URLSearchParams;
+  private params?: URLSearchParams;
+  private paramsFunc?: ((uri: string) => URLSearchParams)
 
-  constructor(opts: IHLSOpts, params: URLSearchParams) {
+  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams)) {
     super(opts);
-    this.params = params;
+    if (typeof params === "function") {
+      this.paramsFunc = params;
+    } else {
+      this.params = params;
+    }
   }
 
   async fetch() {
     await this._fetchAndParse();
-    this.m3u.items.StreamItem.map(item => this.applyParams(this.params, item));
+    if (this.params) {
+      this.m3u.items.StreamItem.map(item => this.applyParams(this.params, item));
+    } else {
+      this.m3u.items.StreamItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
+    }
   }
 
   get streams(): string[] {
@@ -95,12 +109,17 @@ export class HLSMultiVariant extends HLS {
 }
 
 export class HLSMediaPlaylist extends HLS {
-  private params: URLSearchParams;
+  private params?: URLSearchParams;
+  private paramsFunc?: ((uri: string) => URLSearchParams)
   private prependUrl: URL;
 
-  constructor(opts: IHLSOpts, params: URLSearchParams, prependUrl?: URL) {
+  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), prependUrl?: URL) {
     super(opts);
-    this.params = params;
+    if (typeof params === "function") {
+      this.paramsFunc = params;
+    } else {
+      this.params = params;
+    }
     this.prependUrl = prependUrl;
   }
 
@@ -111,6 +130,10 @@ export class HLSMediaPlaylist extends HLS {
         item.set("uri", this.prependUrl.href + item.get("uri"));
       });
     }
-    this.m3u.items.PlaylistItem.map(item => this.applyParams(this.params, item));
+    if (this.params) {
+      this.m3u.items.PlaylistItem.map(item => this.applyParams(this.params, item));
+    } else {
+      this.m3u.items.PlaylistItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
+    }
   }
 }

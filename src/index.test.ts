@@ -42,6 +42,18 @@ describe("multivariant playlist", () => {
     expect(hls.streams[0]).toEqual("manifest_1.m3u8?type=asdf&hej=hopp");
     expect(hls.streamURLs.map(url => url.href)[0]).toEqual("https://fakeurl.com/manifest_1.m3u8?type=asdf&hej=hopp");
   });
+
+  test("apply query params using a function", async () => {
+    let i = 0;
+    const paramsFunc = (uri: string) => {
+      return new URLSearchParams({ i: `${i++}` });
+    }
+    const hls = new HLSMultiVariant({ filePath: "./testvectors/query/manifest.m3u8" }, paramsFunc);
+    await hls.fetch();
+    expect(hls.streams[0]).toEqual("manifest_1.m3u8?type=asdf&i=0");
+    expect(hls.streamURLs.map(url => url.href)[0]).toEqual("https://fakeurl.com/manifest_1.m3u8?type=asdf&i=0");
+    expect(hls.streamURLs.map(url => url.href)[6]).toEqual("https://fakeurl.com/manifest_7.m3u8?type=asdf&i=6");
+  });
 });
 
 describe("media playlist", () => {
@@ -98,5 +110,16 @@ describe("media playlist", () => {
     expect(lines[6]).toEqual("https://prepend.com/hej/manifest_1_00001.ts?hej=hopp");
     expect(lines[8]).toEqual("https://prepend.com/hej/manifest_1_00002.ts?hej=hopp");
     expect(lines[10]).toEqual("https://prepend.com/hej/manifest_1_00003.ts?hej=hopp");    
+  });
+
+  test("apply query params using a function", async () => {
+    let i = 0;
+    const paramsFunc = (uri: string) => {
+      return new URLSearchParams({ i: `${i++}` });
+    }
+    const hls = new HLSMediaPlaylist({ filePath: "./testvectors/query/manifest_1.m3u8" }, paramsFunc);
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[6]).toEqual("manifest_1_00001.ts?type=asdf&i=0");
   });
 });
