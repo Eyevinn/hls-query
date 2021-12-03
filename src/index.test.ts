@@ -64,5 +64,18 @@ describe("media playlist", () => {
     expect(lines[8]).toEqual("https://example.com/hej/manifest_1_00002.ts?hej=hopp");
     expect(lines[10]).toEqual("https://example.com/hej/manifest_1_00003.ts?hej=hopp");
   });
-});
 
+  test("prepend segment URLs with href", async () => {
+    const params = new URLSearchParams({ hej: "hopp" });
+    const hls = new HLSMediaPlaylist({ filePath: "./testvectors/slate/manifest_1.m3u8" }, 
+      params,
+      new URL("https://prepend.com/hej/")
+    );
+
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[6]).toEqual("https://prepend.com/hej/manifest_1_00001.ts?hej=hopp");
+    expect(lines[8]).toEqual("https://prepend.com/hej/manifest_1_00002.ts?hej=hopp");
+    expect(lines[10]).toEqual("https://prepend.com/hej/manifest_1_00003.ts?hej=hopp");    
+  });
+});

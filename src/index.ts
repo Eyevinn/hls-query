@@ -89,14 +89,21 @@ export class HLSMultiVariant extends HLS {
 
 export class HLSMediaPlaylist extends HLS {
   private params: URLSearchParams;
+  private prependUrl: URL;
 
-  constructor(opts: IHLSOpts, params: URLSearchParams) {
+  constructor(opts: IHLSOpts, params: URLSearchParams, prependUrl?: URL) {
     super(opts);
     this.params = params;
+    this.prependUrl = prependUrl;
   }
 
   async fetch() {
     await this._fetchAndParse();
+    if (this.prependUrl) {
+      this.m3u.items.PlaylistItem.map(item => {
+        item.set("uri", this.prependUrl.href + item.get("uri"));
+      });
+    }
     this.m3u.items.PlaylistItem.map(item => this.applyParams(this.params, item));
   }
 }
