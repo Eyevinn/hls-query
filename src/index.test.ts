@@ -52,6 +52,17 @@ describe("multivariant playlist", () => {
     expect(hls.streamURLs.map(url => url.href)[0]).toEqual("https://fakeurl.com/manifest_1.m3u8?type=asdf&i=0");
     expect(hls.streamURLs.map(url => url.href)[6]).toEqual("https://fakeurl.com/manifest_7.m3u8?type=asdf&i=6");
   });
+
+  test("handle query params that are urlencoded", async () => {
+    let i = 0;
+    const paramsFunc = (uri: string) => new URLSearchParams({ i: `${i++}` });
+    const hls = new HLSMultiVariant({ filePath: "./testvectors/query2/manifest.m3u8" }, paramsFunc);
+    await hls.fetch();
+    expect(hls.streams[0]).toEqual("manifest_1.m3u8?type=asdf&a=%7E&i=0");
+    expect(hls.streams[1]).toEqual("manifest_2.m3u8?type=asdf&a=%7E&i=1");
+    expect(hls.streamURLs.map(url => url.href)[0]).toEqual("https://fakeurl.com/manifest_1.m3u8?type=asdf&a=%7E&i=0");
+    expect(hls.streamURLs.map(url => url.href)[1]).toEqual("https://fakeurl.com/manifest_2.m3u8?type=asdf&a=%7E&i=1");
+  });
 });
 
 describe("media playlist", () => {
@@ -126,5 +137,14 @@ describe("media playlist", () => {
     await hls.fetch();
     const lines = hls.toString().split("\n");
     expect(lines[6]).toEqual("https://prepend.com/hej/manifest_1_00001.ts?type=asdf&i=manifest_1_00001.ts%3Ftype%3Dasdf_0");
+  });
+
+  test("apply query params using ~", async () => {
+    let i = 0;
+    const paramsFunc = (uri: string) => new URLSearchParams({ a: `~${i++}` });
+    const hls = new HLSMediaPlaylist({ filePath: "./testvectors/query/manifest_1.m3u8" }, paramsFunc, new URL("https://hej.com/hopp/"));
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[6]).toEqual("https://hej.com/hopp/manifest_1_00001.ts?type=asdf&a=%7E0");
   });
 });
