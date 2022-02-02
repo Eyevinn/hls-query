@@ -33,14 +33,14 @@ class HLS {
 
       if (this.opts.url) {
         fetch(this.opts.url.href)
-        .then(response => {
-          if (response.ok) {
-            response.body.pipe(parser);
-          } else {
-            reject(`Failed to fetch manifest (${response.status}): ` + response.statusText);
-          }
-        })
-        .catch(reject);
+          .then(response => {
+            if (response.ok) {
+              response.body.pipe(parser);
+            } else {
+              reject(`Failed to fetch manifest (${response.status}): ` + response.statusText);
+            }
+          })
+          .catch(reject);
       } else if (this.opts.filePath) {
         try {
           createReadStream(this.opts.filePath).pipe(parser);
@@ -60,7 +60,7 @@ class HLS {
   protected applyParams(params: URLSearchParams, item): void {
     const searchParams = new URLSearchParams(item.get("uri").split("?")[1]);
     params.forEach((value, key) => searchParams.append(key, value));
-    item.set("uri", item.get("uri").split("?")[0] + "?" + searchParams.toString())
+    item.set("uri", item.get("uri").split("?")[0] + "?" + searchParams.toString());
   }
 
   protected applyParamsFunc(createParams: (uri: string) => URLSearchParams, item): void {
@@ -71,7 +71,7 @@ class HLS {
 
 export class HLSMultiVariant extends HLS {
   private params?: URLSearchParams;
-  private paramsFunc?: ((uri: string) => URLSearchParams)
+  private paramsFunc?: ((uri: string) => URLSearchParams);
 
   constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams)) {
     super(opts);
@@ -86,31 +86,37 @@ export class HLSMultiVariant extends HLS {
     await this._fetchAndParse();
     if (this.params) {
       this.m3u.items.StreamItem.map(item => this.applyParams(this.params, item));
+      this.m3u.items.MediaItem.map(item => this.applyParams(this.params, item));
     } else {
       this.m3u.items.StreamItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
+      this.m3u.items.MediaItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
     }
   }
 
   get streams(): string[] {
-    return this.m3u.items.StreamItem.map(item => item.get("uri"));
+    let streams = this.m3u.items.StreamItem.map(item => item.get("uri"));
+    streams = streams.concat(this.m3u.items.MediaItem.map(item => item.get("uri")));
+    return streams;
   }
 
   get streamURLs(): URL[] {
+    let streamURLs: URL[];
     let basePath = "https://fakeurl.com/";
-
     if (this.opts.url) {
       const m = this.opts.url.href.match("^(.*)/.*?$");
       if (m) {
         basePath = m[1] + "/";
       }
     }
-    return this.m3u.items.StreamItem.map(item => new URL(item.get("uri"), basePath));
+    streamURLs = this.m3u.items.StreamItem.map(item => new URL(item.get("uri"), basePath));
+    streamURLs = streamURLs.concat(this.m3u.items.MediaItem.map(item => new URL(item.get("uri"), basePath)));
+    return streamURLs;
   }
 }
 
 export class HLSMediaPlaylist extends HLS {
   private params?: URLSearchParams;
-  private paramsFunc?: ((uri: string) => URLSearchParams)
+  private paramsFunc?: ((uri: string) => URLSearchParams);
   private prependUrl: URL;
 
   constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), prependUrl?: URL) {
