@@ -28,7 +28,7 @@ class HLS {
         resolve();
       });
       parser.on("error", err => {
-        reject("Failed to parse manifest: " + err);
+        reject({ message: `Failed to parse manifest: ${err}` });
       });
 
       if (this.opts.url) {
@@ -37,7 +37,11 @@ class HLS {
             if (response.ok) {
               response.body.pipe(parser);
             } else {
-              reject(`Failed to fetch manifest (${response.status}): ` + response.statusText);
+              reject({
+                statusCode: response.status,
+                statusText: response.statusText,
+                message: `Failed to fetch manifest (${response.status}): ${response.statusText}`,
+              });
             }
           })
           .catch(reject);
@@ -45,13 +49,13 @@ class HLS {
         try {
           createReadStream(this.opts.filePath).pipe(parser);
         } catch(err) {
-          reject(`Failed to fetch manifest: ` + err);
+          reject({ message: `Failed to fetch manifest: ${err}` });
         }
       } else if (this.opts.stream) {
         try {
           this.opts.stream.pipe(parser);
         } catch(err) {
-          reject(`Failed to fetch manifest: ` + err);
+          reject({ message: `Failed to fetch manifest: ${err}` });
         }
       }
     });

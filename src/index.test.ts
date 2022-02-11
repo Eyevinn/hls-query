@@ -74,7 +74,6 @@ describe("demuxed multivariant playlist", () => {
     expect(lines[4]).toEqual("manifest_1.m3u8?hej=hopp");
     expect(lines[18].split("URI=").pop()).toEqual('"manifest_audio_en.m3u8?hej=hopp"');
     expect(lines[19].split("URI=").pop()).toEqual('"manifest_subs_zh.m3u8?hej=hopp"');
-    console.log(JSON.stringify(lines, null, 2));
   });
 
   test("adding one query param to multivariant playlist provided as a stream", async () => {
