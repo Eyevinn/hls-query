@@ -181,6 +181,17 @@ describe("media playlist", () => {
     expect(lines[10]).toEqual("manifest_1_00003.ts?type=asdf&hej=hopp");
   });
 
+  test("removing a query param in a media playlist that has URLs with query params", async () => {
+    const params = new URLSearchParams({ hej: "hopp" });
+    const hls = new HLSMediaPlaylist({ filePath: "./testvectors/query/manifest_1.m3u8" }, 
+      params, undefined, [ "type" ]);
+    await hls.fetch();
+    const lines = hls.toString().split("\n");
+    expect(lines[6]).toEqual("manifest_1_00001.ts?hej=hopp");
+    expect(lines[8]).toEqual("manifest_1_00002.ts?hej=hopp");
+    expect(lines[10]).toEqual("manifest_1_00003.ts?hej=hopp");
+  });
+
   test("adding one query params to media playlist that has absolute URLs", async () => {
     const params = new URLSearchParams({ hej: "hopp" });
     const hls = new HLSMediaPlaylist({ filePath: "./testvectors/absolute/manifest_1.m3u8" }, params);
