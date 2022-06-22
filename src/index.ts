@@ -121,9 +121,10 @@ export class HLSMultiVariant extends HLS {
 export class HLSMediaPlaylist extends HLS {
   private params?: URLSearchParams;
   private paramsFunc?: ((uri: string) => URLSearchParams);
-  private prependUrl: URL;
+  private prependUrl?: URL;
+  private removeParams?: string[];
 
-  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), prependUrl?: URL) {
+  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), prependUrl?: URL, remove?: string[]) {
     super(opts);
     if (typeof params === "function") {
       this.paramsFunc = params;
@@ -131,6 +132,7 @@ export class HLSMediaPlaylist extends HLS {
       this.params = params;
     }
     this.prependUrl = prependUrl;
+    this.removeParams = remove;
   }
 
   async fetch() {
@@ -144,6 +146,15 @@ export class HLSMediaPlaylist extends HLS {
       this.m3u.items.PlaylistItem.map(item => {
         item.set("uri", this.prependUrl.href + item.get("uri"));
       });
+    }
+    if (this.removeParams) {
+      this.removeParams.forEach((paramToDelete:string) => {
+        this.m3u.items.PlaylistItem.map(item => {
+          const searchParams = new URLSearchParams(item.get("uri").split("?")[1]);
+          searchParams.delete(paramToDelete);
+          item.set("uri", item.get("uri").split("?")[0] + "?" + searchParams.toString());      
+        });
+      })
     }
   }
 }
