@@ -123,8 +123,11 @@ export class HLSMediaPlaylist extends HLS {
   private paramsFunc?: ((uri: string) => URLSearchParams);
   private prependUrl?: URL;
   private removeParams?: string[];
+  private chroot: boolean;
 
-  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), prependUrl?: URL, remove?: string[]) {
+  constructor(opts: IHLSOpts, params: URLSearchParams | ((uri: string) => URLSearchParams), 
+    prependUrl?: URL, remove?: string[], chroot?: boolean) 
+  {
     super(opts);
     if (typeof params === "function") {
       this.paramsFunc = params;
@@ -133,6 +136,7 @@ export class HLSMediaPlaylist extends HLS {
     }
     this.prependUrl = prependUrl;
     this.removeParams = remove;
+    this.chroot = !!chroot;
   }
 
   async fetch() {
@@ -142,19 +146,22 @@ export class HLSMediaPlaylist extends HLS {
     } else {
       this.m3u.items.PlaylistItem.map(item => this.applyParamsFunc(this.paramsFunc, item));
     }
-    if (this.prependUrl) {
-      this.m3u.items.PlaylistItem.map(item => {
+    this.m3u.items.PlaylistItem.map(item => {
+      if (this.prependUrl) {
         item.set("uri", this.prependUrl.href + item.get("uri"));
-      });
-    }
-    if (this.removeParams) {
-      this.removeParams.forEach((paramToDelete:string) => {
-        this.m3u.items.PlaylistItem.map(item => {
+      }
+      if (this.removeParams) {
+        this.removeParams.forEach((paramToDelete:string) => {
           const searchParams = new URLSearchParams(item.get("uri").split("?")[1]);
           searchParams.delete(paramToDelete);
           item.set("uri", item.get("uri").split("?")[0] + "?" + searchParams.toString());      
         });
-      })
-    }
+      }
+      if (this.chroot) {
+        const searchParams = new URLSearchParams(item.get("uri").split("?")[1]);
+        const newUri = item.get("uri").split("?")[0].replace(/\.\.\//g, "");
+        item.set("uri", newUri + "?" + searchParams.toString());      
+      }
+    });
   }
 }
